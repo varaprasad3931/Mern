@@ -1,0 +1,195 @@
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const dotenv = require("dotenv");
+
+const User = require("./models/User");
+const Category = require("./models/Category");
+const Product = require("./models/Product");
+
+dotenv.config();
+
+const categoriesData = [
+  { name: "fashion", description: "Trending apparel and clothing styles" },
+  { name: "mobiles", description: "Smartphones and mobile technology" },
+  { name: "electronics", description: "Computers, cameras, and general electronics" },
+  { name: "beauty", description: "Cosmetics, skincare, and personal care products" },
+  { name: "shoes", description: "Footwear for sport, leisure, and formal wear" },
+  { name: "accessories", description: "Bags, watches, jewelry, and more" }
+];
+
+const generateProducts = (categoriesMap) => {
+    const products = [];
+    
+    // Original curated products with galleries and features
+    products.push(
+        { 
+            name: "Nike Running Shoes", 
+            description: "High-performance running shoes designed for ultimate comfort and durability.", 
+            price: 2999, 
+            image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600",
+            images: [
+                "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600",
+                "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
+                "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600"
+            ],
+            features: ["Breathable mesh upper", "Responsive foam midsole", "Durable rubber outsole", "Lightweight design"],
+            category: categoriesMap["shoes"], stock: 15, averageRating: 4.5 
+        },
+        { 
+            name: "iPhone 15 Pro", 
+            description: "The latest Apple iPhone featuring a titanium design, powerful A17 Pro chip, custom Action button, and a pro-class camera system.", 
+            price: 79999, 
+            image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600",
+            images: [
+                "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600",
+                "https://images.unsplash.com/photo-1678652197831-2d180705cd2c?w=600",
+                "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600"
+            ],
+            features: ["A17 Pro chip with 6-core GPU", "Titanium design with Ceramic Shield front", "48MP Main camera with advanced lenses", "USB-C connector with USB 3 speeds"],
+            category: categoriesMap["mobiles"], stock: 8, averageRating: 4.8 
+        },
+        { 
+            name: "Smart Watch Elite", 
+            description: "Monitor your fitness, heart rate, and notifications on the go. Equipped with built-in GPS and premium sports tracking.", 
+            price: 2999, 
+            image: "https://www.leafstudios.in/cdn/shop/files/1_1099cd20-7237-4bdf-a180-b7126de5ef3d_800x.png?v=1722230645",
+            images: [
+                "https://www.leafstudios.in/cdn/shop/files/1_1099cd20-7237-4bdf-a180-b7126de5ef3d_800x.png?v=1722230645",
+                "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=600",
+                "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600"
+            ],
+            features: ["1.4-inch AMOLED display", "Built-in GPS tracking", "Heart rate & sleep monitoring", "5ATM water resistance", "Up to 14 days battery life"],
+            category: categoriesMap["accessories"], stock: 20, averageRating: 4.6 
+        }
+    );
+
+    // Generate remaining 60 products dynamically with features and image galleries
+    const brands = {
+        mobiles: ["OnePlus", "Xiaomi", "Motorola", "Oppo", "Vivo", "Realme"],
+        shoes: ["Reebok", "Asics", "New Balance", "Under Armour", "Skechers"],
+        electronics: ["Sony", "LG", "Dell", "HP", "Lenovo", "Asus"],
+        fashion: ["Zara", "H&M", "Levi's", "Tommy Hilfiger", "Calvin Klein"],
+        beauty: ["L'Oreal", "MAC", "Estee Lauder", "Clinique", "Maybelline"],
+        accessories: ["Fossil", "Ray-Ban", "Oakley", "Casio", "Samsonite"]
+    };
+    
+    // Arrays of fallback images by category to act as a gallery
+    const imageMap = {
+        mobiles: [
+            "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600",
+            "https://images.unsplash.com/photo-1598327105666-5b89351cb31b?w=600",
+            "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600"
+        ],
+        shoes: [
+            "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600",
+            "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600",
+            "https://images.unsplash.com/photo-1515955656352-a1fa3ffcd111?w=600"
+        ],
+        electronics: [
+            "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600",
+            "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600",
+            "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=600"
+        ],
+        fashion: [
+            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600",
+            "https://images.unsplash.com/photo-1489987707023-af82705b7668?w=600",
+            "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=600"
+        ],
+        beauty: [
+            "https://images.unsplash.com/photo-1596462502278-27bf85033e5a?w=600",
+            "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600",
+            "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600"
+        ],
+        accessories: [
+            "https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=600",
+            "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600",
+            "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600"
+        ]
+    };
+
+    const categories = Object.keys(brands);
+    
+    for (let i = 1; i <= 60; i++) {
+        const catName = categories[i % categories.length];
+        const brandList = brands[catName];
+        const brand = brandList[i % brandList.length];
+        
+        products.push({
+            name: `${brand} Premium Item ${i}`,
+            description: `High quality ${catName} product from ${brand}. Features amazing durability and premium finish. Built to meet the highest standards of the industry.`,
+            price: Math.floor(Math.random() * 5000) + 499,
+            image: imageMap[catName][0],
+            images: imageMap[catName],
+            features: [
+                "Premium Build Quality",
+                "1 Year Brand Warranty",
+                "7 Days Replacement Policy",
+                "Cash on Delivery Available",
+                `${brand} Authentic Original`
+            ],
+            category: categoriesMap[catName],
+            stock: Math.floor(Math.random() * 50) + 10,
+            averageRating: (Math.random() * (5.0 - 3.5) + 3.5).toFixed(1)
+        });
+    }
+
+    return products;
+};
+
+const seedDB = async () => {
+  try {
+    const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/trendera";
+    await mongoose.connect(mongoUri);
+    console.log("Connected to MongoDB for Seeding");
+
+    // Clear existing data
+    await User.deleteMany();
+    await Category.deleteMany();
+    await Product.deleteMany();
+    console.log("Cleared old database records");
+
+    // Seed Users
+    const adminPassword = await bcrypt.hash("admin123", 10);
+    const userPassword = await bcrypt.hash("user123", 10);
+
+    const adminUser = await User.create({
+      name: "Admin User",
+      email: "admin@trendera.com",
+      password: adminPassword,
+      role: "admin"
+    });
+
+    const standardUser = await User.create({
+      name: "John Doe",
+      email: "john@trendera.com",
+      password: userPassword,
+      role: "user"
+    });
+
+    console.log(`Created admin account: ${adminUser.email}`);
+    console.log(`Created test user account: ${standardUser.email}`);
+
+    // Seed Categories
+    const seededCategories = await Category.insertMany(categoriesData);
+    console.log(`Seeded ${seededCategories.length} categories`);
+
+    // Create category map of name -> ID
+    const categoriesMap = {};
+    seededCategories.forEach((cat) => {
+      categoriesMap[cat.name] = cat._id;
+    });
+
+    // Seed Products
+    const productsData = generateProducts(categoriesMap);
+    const seededProducts = await Product.insertMany(productsData);
+    console.log(`Seeded ${seededProducts.length} products with multiple images and features!`);
+
+    console.log("Database Seeding Completed Successfully! 🌟");
+    process.exit(0);
+  } catch (error) {
+    console.error("Seeding Error:", error);
+    process.exit(1);
+  }
+};
+
+seedDB();

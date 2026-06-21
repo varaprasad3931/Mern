@@ -1,0 +1,16 @@
+BACKEND
+
+npm init -y
+npm install express mongoose dotenv cors bcryptjs jsonwebtoken
+npm install nodemon --save-dev
+
+| Package      | Purpose                                    |
+| ------------ | ------------------------------------------ |
+| express      | Create server and APIs                     |
+| mongoose     | Connect Node.js with MongoDB               |
+| dotenv       | Read environment variables from .env       |
+| cors         | Allow frontend to communicate with backend |
+| bcryptjs     | Hash passwords                             |
+| jsonwebtoken | Generate JWT tokens                        |
+| nodemon      | Auto restart server when code changes      |
+
