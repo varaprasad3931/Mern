@@ -1,0 +1,33 @@
+.cart-page {
+  display: flex;
+  gap: 30px;
+}
+
+.cart-items {
+  flex: 3;
+}
+
+.cart-summary {
+  flex: 1;
+
+  background: white;
+  padding: 25px;
+
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-md);
+}
+
+.cart-card {
+  display: flex;
+  gap: 20px;
+
+  padding: 20px;
+  margin-bottom: 20px;
+
+  background: white;
+
+  border-radius: 20px;
+
+  box-shadow: var(--shadow-sm);
+}
